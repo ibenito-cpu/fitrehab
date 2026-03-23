@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FitRehab — Exercise & Rehabilitation Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c0e;
+      --surface: #0f1518;
+      --surface2: #161d21;
+      --border: #1e2a30;
+      --accent: #c8ff57;
+      --accent2: #57d9ff;
+      --text: #e8f0f4;
+      --muted: #5a7080;
+      --danger: #ff5757;
+      --card-bg: #111820;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* NOISE TEXTURE */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,12,14,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+
+    .logo-main {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .header-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(200,255,87,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.2s;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero p {
+      max-width: 480px;
+      margin: 1.5rem auto 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.35s;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* FILTERS */
+    .filters-wrapper {
+      padding: 0 2rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .filters-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1.5rem;
+      align-items: end;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.5s;
+    }
+
+    .filter-group label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .filter-group select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      border-radius: 2px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .filter-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .filter-group select option {
+      background: var(--surface2);
+    }
+
+    .search-btn {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      padding: 0.75rem 2rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.08em;
+      border-radius: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .search-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(200,255,87,0.25);
+    }
+
+    .search-btn:active { transform: translateY(0); }
+    .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* STATS BAR */
+    .stats-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .results-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .results-count span { color: var(--accent); }
+
+    .sort-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .sort-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.75rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sort-btn.active, .sort-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* SEARCH BAR */
+    .search-bar-wrap {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      padding: 0 2rem;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem 0.75rem 2.75rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      border-radius: 2px;
+      transition: border-color 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235a7080' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 0.85rem center;
+    }
+
+    .search-input:focus { outline: none; border-color: var(--accent2); }
+    .search-input::placeholder { color: var(--muted); }
+
+    /* GRID */
+    .exercises-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* EXERCISE CARD */
+    .exercise-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: cardIn 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .exercise-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(200,255,87,0.3);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      background: var(--surface2);
+      display: block;
+    }
+
+    .card-image-placeholder {
+      width: 100%;
+      height: 220px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 3rem;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 2px;
+    }
+
+    .tag-muscle { background: rgba(200,255,87,0.1); color: var(--accent); border: 1px solid rgba(200,255,87,0.2); }
+    .tag-equip  { background: rgba(87,217,255,0.1); color: var(--accent2); border: 1px solid rgba(87,217,255,0.2); }
+    .tag-body   { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+    .card-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      text-transform: capitalize;
+    }
+
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-meta::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.25s;
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-body { padding: 2rem; }
+
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.04em;
+      text-transform: capitalize;
+      margin-bottom: 1rem;
+    }
+
+    .modal-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+
+    .modal-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-section-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .secondary-muscles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover { background: var(--danger); border-color: var(--danger); }
+
+    .modal-header-wrap { position: relative; }
+
+    /* STATES */
+    .state-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-sub { color: var(--muted); font-size: 0.9rem; }
+
+    .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+    .error-box {
+      background: rgba(255,87,87,0.08);
+      border: 1px solid rgba(255,87,87,0.25);
+      border-radius: 4px;
+      padding: 1.5rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .error-box p { color: var(--danger); font-size: 0.9rem; }
+
+    /* WELCOME STATE */
+    .welcome-state {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2rem 5rem;
+      text-align: center;
+    }
+
+    .muscle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .muscle-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: capitalize;
+      color: var(--text);
+    }
+
+    .muscle-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(200,255,87,0.05);
+    }
+
+    .welcome-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* PAGINATION */
+    .pagination {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .page-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.85rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover, .page-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .filters-card { grid-template-columns: 1fr; }
+      .search-btn { width: 100%; }
+      .stats-bar { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    footer a { color: var(--accent2); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <span class="logo-main">FitRehab</span>
+      <span class="logo-sub">Exercise Planner</span>
+    </div>
+    <span class="header-tag">Powered by ExerciseDB</span>
+  </header>
+
+  <section class="hero">
+    <p class="hero-eyebrow">Rehabilitation &amp; Fitness</p>
+    <h1>Find Your<br><span>Perfect</span><br>Exercise</h1>
+    <p>Filter thousands of exercises by target muscle group and available equipment. Build smarter workouts.</p>
+  </section>
+
+  <div class="filters-wrapper">
+    <div class="filters-card">
+      <div class="filter-group">
+        <label>Target Muscle</label>
+        <select id="muscleSelect">
+          <option value="">All Muscles</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Equipment</label>
+        <select id="equipmentSelect">
+          <option value="">All Equipment</option>
+        </select>
+      </div>
+      <button class="search-btn" id="searchBtn" onclick="searchExercises()">Search</button>
+    </div>
+  </div>
+
+  <div id="appContent">
+    <!-- Welcome state -->
+    <div class="welcome-state" id="welcomeState">
+      <p class="welcome-label">Quick Select — Browse by Muscle Group</p>
+      <div class="muscle-grid" id="muscleChips"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modalContent">
+      <div class="modal-header-wrap">
+        <img id="modalImg" class="modal-image" src="" alt="" />
+        <button class="modal-close" onclick="closeModalBtn()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tags" id="modalTags"></div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-section">
+          <p class="modal-section-title">Secondary Muscles</p>
+          <div class="secondary-muscles" id="modalSecondary"></div>
+        </div>
+        <div class="modal-section">
+          <p class="modal-section-title">Body Part</p>
+          <p id="modalBodyPart" style="font-size:0.95rem; color:var(--text);text-transform:capitalize;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Data provided by <a href="https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb" target="_blank">ExerciseDB on RapidAPI</a> &nbsp;|&nbsp; FitRehab &copy; 2025
+  </footer>
+
+  <script>
+    const API_KEY = '3a09165a7fmshb3cb2d560876fbcp15ba7fjsnebd1842cfe87';
+    const API_HOST = 'exercisedb.p.rapidapi.com';
+    const BASE = 'https://exercisedb.p.rapidapi.com';
+    const HEADERS = { 'x-rapidapi-key': API_KEY, 'x-rapidapi-host': API_HOST };
+
+    let allExercises = [];
+    let filtered = [];
+    let currentPage = 1;
+    const PER_PAGE = 15;
+    let sortMode = 'name';
+
+    // ── Init ──────────────────────────────────────────────────────────
+    async function init() {
+      await Promise.all([loadMuscles(), loadEquipment()]);
+    }
+
+    async function loadMuscles() {
+      try {
+        const r = await fetch(`${BASE}/exercises/targetList`, { headers: HEADERS });
+        const muscles = await r.json();
+        const sel = document.getElementById('muscleSelect');
+        const chips = document.getElementById('muscleChips');
+        muscles.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m; opt.textContent = capitalize(m);
+          sel.appendChild(opt);
+          const chip = document.createElement('div');
+          chip.className = 'muscle-chip';
+          chip.textContent = capitalize(m);
+          chip.onclick = () => { sel.value = m; searchExercises(); };
+          chips.appendChild(chip);
+        });
+      } catch(e) { console.error('Failed to load muscles', e); }
+    }
+
+    async function loadEquipment() {
+      try {
+        const r = await fetch(`${BASE}/exercises/equipmentList`, { headers: HEADERS });
+        const items = await r.json();
+        const sel = document.getElementById('equipmentSelect');
+        items.forEach(eq => {
+          const opt = document.createElement('option');
+          opt.value = eq; opt.textContent = capitalize(eq);
+          sel.appendChild(opt);
+        });
+      } catch(e) { console.error('Failed to load equipment', e); }
+    }
+
+    // ── Search ────────────────────────────────────────────────────────
+    async function searchExercises() {
+      const muscle = document.getElementById('muscleSelect').value;
+      const equipment = document.getElementById('equipmentSelect').value;
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      showLoading();
+
+      try {
+        let url;
+        if (muscle) {
+          url = `${BASE}/exercises/target/${encodeURIComponent(muscle)}?limit=200&offset=0`;
+        } else if (equipment) {
+          url = `${BASE}/exercises/equipment/${encodeURIComponent(equipment)}?limit=200&offset=0`;
+        } else {
+          url = `${BASE}/exercises?limit=200&offset=0`;
+        }
+
+        const r = await fetch(url, { headers: HEADERS });
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        allExercises = await r.json();
+
+        // client-side filter by equipment if muscle was primary
+        if (muscle && equipment) {
+          allExercises = allExercises.filter(e => e.equipment === equipment);
+        }
+
+        filtered = [...allExercises];
+        currentPage = 1;
+        sortMode = 'name';
+        applySort();
+        renderResults();
+      } catch(err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Search';
+      }
+    }
+
+    // ── Client search ─────────────────────────────────────────────────
+    function onSearchInput(val) {
+      if (!allExercises.length) return;
+      filtered = val
+        ? allExercises.filter(e => e.name.toLowerCase().includes(val.toLowerCase()))
+        : [...allExercises];
+      currentPage = 1;
+      renderResults();
+    }
+
+    // ── Sort ──────────────────────────────────────────────────────────
+    function setSort(mode) {
+      sortMode = mode;
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+      applySort();
+      renderResults();
+    }
+
+    function applySort() {
+      if (sortMode === 'name') {
+        filtered.sort((a,b) => a.name.localeCompare(b.name));
+      } else if (sortMode === 'muscle') {
+        filtered.sort((a,b) => a.target.localeCompare(b.target));
+      } else if (sortMode === 'equip') {
+        filtered.sort((a,b) => a.equipment.localeCompare(b.equipment));
+      }
+    }
+
+    // ── Render ────────────────────────────────────────────────────────
+    function renderResults() {
+      const content = document.getElementById('appContent');
+      const total = filtered.length;
+      const pages = Math.ceil(total / PER_PAGE);
+      const start = (currentPage - 1) * PER_PAGE;
+      const slice = filtered.slice(start, start + PER_PAGE);
+
+      if (total === 0) { showEmpty(); return; }
+
+      content.innerHTML = `
+        <div class="stats-bar">
+          <p class="results-count"><span>${total}</span> exercises found</p>
+          <div class="sort-row">
+            <button class="sort-btn ${sortMode==='name'?'active':''}" data-sort="name" onclick="setSort('name')">A–Z</button>
+            <button class="sort-btn ${sortMode==='muscle'?'active':''}" data-sort="muscle" onclick="setSort('muscle')">Muscle</button>
+            <button class="sort-btn ${sortMode==='equip'?'active':''}" data-sort="equip" onclick="setSort('equip')">Equipment</button>
+          </div>
+        </div>
+        <div class="search-bar-wrap">
+          <input class="search-input" type="text" placeholder="Search within results..." oninput="onSearchInput(this.value)" />
+        </div>
+        <div class="exercises-grid" id="exercisesGrid"></div>
+        ${pages > 1 ? renderPagination(pages) : ''}
+      `;
+
+      const grid = document.getElementById('exercisesGrid');
+      slice.forEach((ex, i) => {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        card.style.animationDelay = `${i * 0.04}s`;
+        card.onclick = () => openModal(ex);
+        card.innerHTML = `
+          ${ex.gifUrl
+            ? `<img class="card-image" src="${ex.gifUrl}" alt="${ex.name}" loading="lazy" />`
+            : `<div class="card-image-placeholder">💪</div>`}
+          <div class="card-body">
+            <div class="card-tags">
+              <span class="tag tag-muscle">${ex.target}</span>
+              <span class="tag tag-equip">${ex.equipment}</span>
+              <span class="tag tag-body">${ex.bodyPart}</span>
+            </div>
+            <h3 class="card-name">${ex.name}</h3>
+            <p class="card-meta">${ex.secondaryMuscles?.length ? ex.secondaryMuscles.slice(0,2).join(', ') : 'Primary only'}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderPagination(pages) {
+      let btns = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← Prev</button>`;
+      const range = [];
+      for (let i = 1; i <= pages; i++) {
+        if (i === 1 || i === pages || Math.abs(i - currentPage) <= 1) range.push(i);
+        else if (range[range.length-1] !== '…') range.push('…');
+      }
+      range.forEach(p => {
+        if (p === '…') btns += `<span class="page-btn" style="cursor:default">…</span>`;
+        else btns += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+      });
+      btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>Next →</button>`;
+      return `<div class="pagination">${btns}</div>`;
+    }
+
+    function goPage(p) {
+      currentPage = p;
+      renderResults();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── States ────────────────────────────────────────────────────────
+    function showLoading() {
+      document.getElementById('appContent').innerHTML = `
+        <div class="state-container">
+          <div class="loading-spinner"></div>
+          <p class="state-title">Fetching Exercises</p>
+          <p class="state-sub">Pulling data from ExerciseDB…</p>
+        </div>`;
+    }
+
+    function showEmpty() {
+      document.getElementById('appContent').innerHTML = `
+        <div class="state-container">
+          <div class="empty-icon">🔍</div>
+          <p class="state-title">No Results Found</p>
+          <p class="state-sub">Try a different muscle group or equipment combination.</p>
+        </div>`;
+    }
+
+    function showError(msg) {
+      document.getElementById('appContent').innerHTML = `
+        <div class="state-container">
+          <div class="error-box">
+            <p class="state-title" style="color:var(--danger);margin-bottom:0.5rem;">Something went wrong</p>
+            <p>${msg || 'Could not connect to the API. Please try again.'}</p>
+          </div>
+        </div>`;
+    }
+
+    // ── Modal ─────────────────────────────────────────────────────────
+    function openModal(ex) {
+      document.getElementById('modalImg').src = ex.gifUrl || '';
+      document.getElementById('modalImg').alt = ex.name;
+      document.getElementById('modalTitle').textContent = ex.name;
+      document.getElementById('modalBodyPart').textContent = ex.bodyPart;
+      document.getElementById('modalTags').innerHTML = `
+        <span class="tag tag-muscle">${ex.target}</span>
+        <span class="tag tag-equip">${ex.equipment}</span>
+        <span class="tag tag-body">${ex.bodyPart}</span>`;
+      const sec = document.getElementById('modalSecondary');
+      if (ex.secondaryMuscles?.length) {
+        sec.innerHTML = ex.secondaryMuscles.map(m => `<span class="tag tag-body">${m}</span>`).join('');
+      } else {
+        sec.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">None listed</span>';
+      }
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+    }
+
+    function closeModalBtn() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+
+    function capitalize(s) { return s.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+    init();
+  </script>
+</body>
+</html>
