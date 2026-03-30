@@ -4,12 +4,21 @@ A web application that helps users discover physical exercises based on target m
 
 ---
 
-## Purpose
+##  Demo Video
 
-FitRehab solves a real problem: finding the right exercises when you have limited equipment or specific rehabilitation needs. Users can filter thousands of exercises by muscle group (e.g., "Back", "Biceps") and equipment (e.g., "Dumbbell", "Body Weight"), then view animated GIFs demonstrating proper form.
+[![FitRehab Demo Video](https://img.youtube.com/vi/W1leKypLEbo/0.jpg)](https://www.youtube.com/watch?v=W1leKypLEbo)
+
+ **Watch the demo here**: [https://www.youtube.com/watch?v=W1leKypLEbo](https://www.youtube.com/watch?v=W1leKypLEbo)
+
 ---
 
-## Features
+##  Purpose
+
+FitRehab solves a real problem: finding the right exercises when you have limited equipment or specific rehabilitation needs. Users can filter thousands of exercises by muscle group (e.g., "Back", "Biceps") and equipment (e.g., "Dumbbell", "Body Weight"), then view animated GIFs demonstrating proper form.
+
+---
+
+##  Features
 
 - **Filter by Muscle Group** — 15+ target muscle groups (Back, Chest, Biceps, etc.)
 - **Filter by Equipment** — From dumbbells to body weight to resistance bands
@@ -24,12 +33,7 @@ FitRehab solves a real problem: finding the right exercises when you have limite
 
 ---
 
-## Demo Video 
- **This is the YouTube video to understand how Fitreh works: https://www.youtube.com/watch?v=W1leKypLEbo
- 
----
-
-## Tech Stack
+## 🛠 Tech Stack
 
 - **Frontend**: Pure HTML, CSS, JavaScript (no frameworks)
 - **API**: [ExerciseDB on RapidAPI](https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb)
@@ -38,12 +42,12 @@ FitRehab solves a real problem: finding the right exercises when you have limite
 
 ---
 
-## 📦 Running Locally
+##  Running Locally
 
 Clone the repository and open the file directly in your browser — no build step needed:
 
 ```bash
-git clone https://github.com/<your-username>/fitrehab.git
+git clone https://github.com/ibenito-cpu/fitrehab.git
 cd fitrehab
 # Open index.html in your browser
 open index.html        # macOS
@@ -61,7 +65,7 @@ python3 -m http.server 8080
 
 ---
 
-## ☁️ Deployment
+##  Deployment
 
 The application is deployed on two web servers behind an HAProxy load balancer.
 
@@ -169,7 +173,7 @@ This automatically copies the app to both servers and configures nginx.
 
 ---
 
-## 🔌 API Reference
+##  API Reference
 
 **API**: ExerciseDB  
 **Provider**: RapidAPI  
@@ -187,7 +191,7 @@ This automatically copies the app to both servers and configures nginx.
 
 ---
 
-## ⚠️ Challenges & Solutions
+##  Challenges & Solutions
 
 1. **Combined filtering**: The API doesn't support filtering by both muscle AND equipment simultaneously. Solved by fetching by primary filter (muscle) then filtering client-side by equipment.
 
@@ -199,7 +203,7 @@ This automatically copies the app to both servers and configures nginx.
 
 ---
 
-## 📝 Credits
+##  Credits
 
 - Exercise data and GIFs: [ExerciseDB](https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb) by yuhonas on RapidAPI
 - Fonts: [Google Fonts](https://fonts.google.com) (Bebas Neue, DM Sans, Space Mono)
@@ -207,12 +211,12 @@ This automatically copies the app to both servers and configures nginx.
 
 ---
 
-## 🔒 Security Note
+##  Security Note
 
 The API key is currently embedded in the frontend JavaScript. For a production application, this should be proxied through a backend server (Node.js/Python) to prevent public exposure of the key.
 
 ---
 
-## 📄 License
+##  License
 
 MIT
