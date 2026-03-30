@@ -4,13 +4,12 @@ A web application that helps users discover physical exercises based on target m
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 FitRehab solves a real problem: finding the right exercises when you have limited equipment or specific rehabilitation needs. Users can filter thousands of exercises by muscle group (e.g., "Back", "Biceps") and equipment (e.g., "Dumbbell", "Body Weight"), then view animated GIFs demonstrating proper form.
-
 ---
 
-## 🚀 Features
+## Features
 
 - **Filter by Muscle Group** — 15+ target muscle groups (Back, Chest, Biceps, etc.)
 - **Filter by Equipment** — From dumbbells to body weight to resistance bands
@@ -25,7 +24,12 @@ FitRehab solves a real problem: finding the right exercises when you have limite
 
 ---
 
-## 🛠 Tech Stack
+## Demo Video 
+ **This is the YouTube video to understand how Fitreh works: https://www.youtube.com/watch?v=W1leKypLEbo
+ 
+---
+
+## Tech Stack
 
 - **Frontend**: Pure HTML, CSS, JavaScript (no frameworks)
 - **API**: [ExerciseDB on RapidAPI](https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb)
